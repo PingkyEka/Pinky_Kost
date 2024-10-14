@@ -1,61 +1,61 @@
 import 'package:flutter/material.dart';
-import 'home.dart';
-import 'add.dart';
-import 'favorite.dart';
-import 'profile.dart';
-import 'search.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'home_page.dart';
+import 'login_page.dart';
+import 'add_page.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplikasi PinkyKost',
-      home: MyHomePage(),
+      title: 'PINKYKOST',
+      home: const AuthCheck(),
+      routes: {
+        '/home': (context) => const HomePage(),
+        '/login': (context) => const LoginPage(),
+        '/add': (context) => const AddPage(), // Tambahkan route untuk AddPage
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class AuthCheck extends StatefulWidget {
+  const AuthCheck({super.key});
+
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  // ignore: library_private_types_in_public_api
+  _AuthCheckState createState() => _AuthCheckState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _currentIndex = 0;
+class _AuthCheckState extends State<AuthCheck> {
+  bool _isLoggedIn = false;
 
-  final List<Widget> _children = [
-    Home(),
-    Add(),
-    Favorite(),
-    Profile(),
-    Search(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? loggedIn = prefs.getBool('isLoggedIn');
+    setState(() {
+      _isLoggedIn = loggedIn ?? false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _children[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.favorite), label: 'Favorite'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-        ],
-      ),
-    );
+    if (_isLoggedIn) {
+      return const HomePage();
+    } else {
+      return const LoginPage();
+    }
   }
 }
